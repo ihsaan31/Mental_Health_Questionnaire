@@ -1,1 +1,9 @@
+plotly==5.13.1
+gunicorn
+pandas
 joblib
+sklearn
+gspread==5.12.2
+datetime
+python-dotenv
+google-oauth2-tool==0.0.3
