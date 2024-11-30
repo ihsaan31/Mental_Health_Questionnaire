@@ -2,7 +2,7 @@ plotly==5.13.1
 gunicorn
 pandas
 joblib
-sklearn
+scikit-learn
 gspread==5.12.2
 datetime
 python-dotenv
