@@ -40,7 +40,7 @@ st.markdown(
 # Load the model
 @st.cache_resource
 def load_model():
-    with open('random_forest_model.pkl', 'rb') as file:
+    with open('Logistic_regression_model.pkl', 'rb') as file:
         return joblib.load(file)
 
 # Load the model only once
