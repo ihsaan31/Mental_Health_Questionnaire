@@ -1,5 +1,4 @@
 import streamlit as st
-import joblib  # To load the .pkl model
 
 # Page Configuration
 st.set_page_config(page_title="Mental Health Questionnaire", page_icon="🧠", layout="wide")
@@ -36,15 +35,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# Load the model
-@st.cache_resource
-def load_model():
-    with open('Logistic_regression_model.pkl', 'rb') as file:
-        return joblib.load(file)
-
-# Load the model only once
-model = load_model()
 
 def main():
     st.title("Mental Health Questionnaire")
@@ -100,23 +90,20 @@ def main():
             for i, (question, response) in enumerate(zip(questions, responses), 1):
                 st.write(f"{i}. {question} - **{response}**")
         
-        # Prepare the data for prediction
-        model_input = [1 if response == "Ya" else 0 for response in responses]
+        # Count "Ya" responses
+        ya_count = sum(1 for response in responses if response == "Ya")
         
-        # Make the prediction using the loaded model
-        prediction = model.predict([model_input])
-
-        # Create a more prominent prediction display
-        if prediction == 0:
-            st.success(
-                "### 🌟 Prediksi: Tidak ada gangguan mental health\n\n"
-                "Anda tampaknya dalam kondisi mental yang baik. Tetap jaga kesehatan mental Anda!"
-            )
-        else: 
+        # Logic to determine mental health status
+        if ya_count >= 6:
             st.warning(
                 "### ⚠️ Prediksi: Ada gangguan mental health\n\n"
                 "Kami menyarankan Anda untuk berkonsultasi dengan profesional kesehatan mental. "
                 "Ingat, mencari bantuan adalah tanda kekuatan, bukan kelemahan."
+            )
+        else:
+            st.success(
+                "### 🌟 Prediksi: Tidak ada gangguan mental health\n\n"
+                "Anda tampaknya dalam kondisi mental yang baik. Tetap jaga kesehatan mental Anda!"
             )
 
 if __name__ == "__main__":
