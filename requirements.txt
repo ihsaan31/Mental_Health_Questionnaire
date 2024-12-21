@@ -7,3 +7,4 @@ gspread==5.12.2
 datetime
 python-dotenv
 google-oauth2-tool==0.0.3
+oauth2client
