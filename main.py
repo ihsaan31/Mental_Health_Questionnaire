@@ -2,6 +2,7 @@ import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+from pytz import timezone
 import os
 from dotenv import load_dotenv
 import json
@@ -137,7 +138,8 @@ def main():
             )
 
         # Prepare data to save, with timestamp and prediction at the front
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        jakarta_tz = timezone("Asia/Jakarta")
+        timestamp = datetime.now(jakarta_tz).strftime("%Y-%m-%d %H:%M:%S")
         data_to_save = [timestamp, prediction] + responses
 
         # Save data to Google Sheets
