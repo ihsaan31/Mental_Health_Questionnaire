@@ -1,4 +1,17 @@
 import streamlit as st
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
+import os
+from dotenv import load_dotenv
+import json
+
+# Load environment variables
+load_dotenv()
+
+# Fetch values from .env
+GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
+GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
 
 # Page Configuration
 st.set_page_config(page_title="Mental Health Questionnaire", page_icon="🧠", layout="wide")
@@ -15,7 +28,6 @@ st.markdown(
         width: 80%;
         text-align: center;
     }
-    /* Make submit button wider and more prominent */
     .stButton > button {
         width: 100%;
         height: 50px;
@@ -35,6 +47,23 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# Function to connect to Google Sheets
+def connect_to_gsheets():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    
+    # Load credentials from the environment variable
+    creds_dict = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+    
+    # Open the spreadsheet using its ID
+    sheet = client.open_by_key(GOOGLE_SHEET_ID).sheet1
+    return sheet
+
+# Function to save data to Google Sheets
+def save_to_gsheet(sheet, data):
+    sheet.append_row(data)
 
 def main():
     st.title("Mental Health Questionnaire")
@@ -94,17 +123,30 @@ def main():
         ya_count = sum(1 for response in responses if response == "Ya")
         
         # Logic to determine mental health status
+        prediction = "Ada gangguan mental health" if ya_count >= 6 else "Tidak ada gangguan mental health"
         if ya_count >= 6:
             st.warning(
-                "### ⚠️ Prediksi: Ada gangguan mental health\n\n"
+                f"### ⚠️ Prediksi: {prediction}\n\n"
                 "Kami menyarankan Anda untuk berkonsultasi dengan profesional kesehatan mental. "
                 "Ingat, mencari bantuan adalah tanda kekuatan, bukan kelemahan."
             )
         else:
             st.success(
-                "### 🌟 Prediksi: Tidak ada gangguan mental health\n\n"
+                f"### 🌟 Prediksi: {prediction}\n\n"
                 "Anda tampaknya dalam kondisi mental yang baik. Tetap jaga kesehatan mental Anda!"
             )
+
+        # Prepare data to save, with timestamp and prediction at the front
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data_to_save = [timestamp, prediction] + responses
+
+        # Save data to Google Sheets
+        try:
+            sheet = connect_to_gsheets()
+            save_to_gsheet(sheet, data_to_save)
+            st.success("Jawaban berhasil disimpan ke Google Sheets.")
+        except Exception as e:
+            st.error(f"Terjadi kesalahan saat menyimpan ke Google Sheets: {e}")
 
 if __name__ == "__main__":
     main()
